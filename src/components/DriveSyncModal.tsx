@@ -71,19 +71,19 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-950/65 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       <div 
-        className="w-full max-w-xl bg-[#fffdfa] rounded-2xl shadow-2xl overflow-hidden border border-[#eadecc]"
+        className="w-full max-w-xl max-h-[92vh] flex flex-col bg-[#fffdfa] rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-[#eadecc]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-[#f0e8db] bg-[#faf5ec]">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[#f0e8db] bg-[#faf5ec] shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#fef3c7] text-amber-700 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-[#fef3c7] text-amber-700 flex items-center justify-center shrink-0">
               <CloudLightning className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-stone-800 text-base">Quét & Nhận Diện Video Trên Drive</h3>
+              <h3 className="font-bold text-stone-800 text-sm sm:text-base">Quét & Nhận Diện Video Trên Drive</h3>
               <p className="text-xs text-stone-500">
                 Đồng bộ tự động cho <strong className="text-amber-800">{pageName}</strong>
               </p>
@@ -91,14 +91,14 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-stone-400 hover:text-stone-600 rounded-lg hover:bg-[#ede5d6] transition"
+            className="p-1.5 text-stone-400 hover:text-stone-600 rounded-lg hover:bg-[#ede5d6] transition min-w-[36px] min-h-[36px] flex items-center justify-center"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content Form */}
-        <form onSubmit={handleSync} className="p-6 space-y-4">
+        <form onSubmit={handleSync} className="p-4 sm:p-6 space-y-4 overflow-y-auto">
           {/* Method tabs */}
           <div className="flex border-b border-[#eadecc]">
             <button

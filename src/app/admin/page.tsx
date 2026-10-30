@@ -555,31 +555,31 @@ function AdminDashboard() {
               </div>
 
               {/* Action buttons */}
-              <div className="flex flex-wrap items-center gap-2.5">
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full md:w-auto">
                 <button
                   onClick={() => handleDirectDriveScan(activePageId, true)}
                   disabled={isSyncing}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-amber-900 bg-[#fef3c7] hover:bg-[#fde68a] border border-[#fde68a] transition shadow-sm disabled:opacity-50"
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold text-amber-900 bg-[#fef3c7] hover:bg-[#fde68a] border border-[#fde68a] transition shadow-sm disabled:opacity-50 min-h-[38px] active:scale-95"
                 >
                   {isSyncing ? (
                     <>
                       <Loader2 className="w-4 h-4 text-amber-700 animate-spin" />
-                      <span>Đang quét Drive...</span>
+                      <span>Đang quét...</span>
                     </>
                   ) : (
                     <>
                       <CloudLightning className="w-4 h-4 text-amber-700" />
-                      <span>⚡ Quét Drive Ngay</span>
+                      <span>⚡ Quét Drive</span>
                     </>
                   )}
                 </button>
 
                 <button
                   onClick={() => setIsBulkOpen(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition shadow-md shadow-amber-600/20"
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition shadow-md shadow-amber-600/20 min-h-[38px] active:scale-95"
                 >
                   <ListPlus className="w-4 h-4" />
-                  <span>+ Nhập Danh Sách Title</span>
+                  <span>+ Thêm Title</span>
                 </button>
 
                 <button
@@ -591,7 +591,7 @@ function AdminDashboard() {
                     }
                   }}
                   title="Làm mới"
-                  className="p-2 text-stone-600 hover:text-stone-900 hover:bg-[#f5ecda] rounded-xl transition border border-[#eadecc]"
+                  className="p-2 text-stone-600 hover:text-stone-900 hover:bg-[#f5ecda] rounded-xl transition border border-[#eadecc] min-w-[38px] min-h-[38px] flex items-center justify-center"
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
