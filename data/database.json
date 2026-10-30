@@ -1,0 +1,49 @@
+{
+  "settings": {
+    "appName": "FB Multi-Page Video Manager & Drive Sync",
+    "googleApiKey": "AIzaSyChB_bOgZPLONA6xPm0pjHc9mieN3xVIyw"
+  },
+  "pages": [
+    {
+      "id": "page-1793378576503",
+      "name": "PAGE A NHẤT",
+      "slug": "page-a-nh-t",
+      "avatar": "📱",
+      "fbPageUrl": "https://muse.ai/",
+      "driveFolderId": "1-8Hns_fhQb9HWuhzDFMJfPYY1U8wdsMu",
+      "driveFolderUrl": "https://drive.google.com/drive/folders/1-8Hns_fhQb9HWuhzDFMJfPYY1U8wdsMu",
+      "description": "",
+      "createdAt": "2026-10-30T16:42:56.503Z"
+    }
+  ],
+  "videos": [
+    {
+      "id": "vid-1793378644727-0-4cvcn",
+      "pageId": "page-1793378576503",
+      "stt": 1,
+      "title": "TEST TITLE 1",
+      "caption": null,
+      "scheduledDate": "2026-10-30",
+      "scheduledTime": "11:30",
+      "status": "published_fb",
+      "driveFileId": "15WTIyupM9_8PjPn7h-Fb0EpDdGJmmZdv",
+      "driveVideoUrl": "https://drive.google.com/file/d/15WTIyupM9_8PjPn7h-Fb0EpDdGJmmZdv/view?usp=drivesdk",
+      "driveFileName": "01.mp4",
+      "driveFileSize": null,
+      "driveUploadedAt": "2026-10-30T16:51:35.537+00:00",
+      "clientFeedback": {
+        "notes": "",
+        "rating": 5,
+        "feeling": "good",
+        "reaction": "seen",
+        "updatedAt": "2026-10-30T16:46:17.575Z",
+        "reviewerName": "Khách hàng"
+      },
+      "editorNotes": null,
+      "isRevised": false,
+      "revisedAt": null,
+      "createdAt": "2026-10-30T16:44:04.727+00:00",
+      "updatedAt": "2026-10-30T18:04:08.700Z"
+    }
+  ]
+}
