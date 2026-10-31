@@ -112,7 +112,7 @@ export async function fetchDriveFolderFiles(
   if (apiKey) {
     try {
       const query = encodeURIComponent(`'${cleanFolderId}' in parents and trashed = false`);
-      const url = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name,mimeType,size,webViewLink,createdTime)&key=${apiKey}`;
+      const url = `https://www.googleapis.com/drive/v3/files?q=${query}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType,size,webViewLink,createdTime)&key=${apiKey}`;
       const res = await fetch(url);
       const data = await res.json();
       
