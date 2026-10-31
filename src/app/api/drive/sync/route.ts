@@ -20,19 +20,23 @@ export async function POST(req: Request) {
     const allVideos = await dbGetVideos(pageId);
     const db = getLocalDatabase();
     let filesToMatch: { name: string; id?: string; url?: string }[] = [];
+    let driveApiScanned = false;
 
     // METHOD A: From Google Drive API
     const effectiveApiKey = process.env.GOOGLE_DRIVE_API_KEY || apiKey || db.settings.googleApiKey;
     
     if (page.driveFolderId && effectiveApiKey) {
       const driveRes = await fetchDriveFolderFiles(page.driveFolderId, effectiveApiKey);
-      if (driveRes.success && driveRes.files.length > 0) {
-        filesToMatch = driveRes.files.map(f => ({
-          name: f.name,
-          id: f.id,
-          url: f.webViewLink || `https://drive.google.com/file/d/${f.id}/view`
-        }));
-      } else if (!driveRes.success && (!manualFileList || !manualFileList.trim())) {
+      if (driveRes.success) {
+        driveApiScanned = true;
+        if (driveRes.files && driveRes.files.length > 0) {
+          filesToMatch = driveRes.files.map(f => ({
+            name: f.name,
+            id: f.id,
+            url: f.webViewLink || `https://drive.google.com/file/d/${f.id}/view`
+          }));
+        }
+      } else if (!manualFileList || !manualFileList.trim()) {
         return NextResponse.json({
           success: false,
           error: `Google Drive API báo lỗi: ${driveRes.error}. (Lưu ý: Thư mục Drive cần bật quyền "Bất kỳ ai có liên kết đều xem được")`
@@ -40,7 +44,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // METHOD B: From manual file list
+    // METHOD B: From manual file list (if provided)
     if (manualFileList && typeof manualFileList === 'string' && manualFileList.trim()) {
       const lines = manualFileList.split('\n').map(l => l.trim()).filter(Boolean);
       for (const line of lines) {
@@ -55,52 +59,92 @@ export async function POST(req: Request) {
       }
     }
 
+    // REAL-TIME RECONCILIATION:
+    // If no files were found in the folder
     if (filesToMatch.length === 0) {
+      // Reconcile: If folder is empty, clear old drive links from videos on this page
+      let clearedCount = 0;
+      for (const video of allVideos) {
+        if (video.driveFileName || video.driveFileId || video.driveVideoUrl) {
+          const resetStatus = video.status === 'uploaded_drive' ? 'not_started' : video.status;
+          await dbSaveVideo({
+            ...video,
+            driveFileName: undefined,
+            driveFileId: undefined,
+            driveVideoUrl: undefined,
+            driveUploadedAt: undefined,
+            status: resetStatus,
+            updatedAt: new Date().toISOString()
+          });
+          clearedCount++;
+        }
+      }
+
       return NextResponse.json({
-        success: false,
-        error: "Không tìm thấy file nào để đối soát. Hãy kiểm tra kết nối Google Drive hoặc dán danh sách tên file video vào ô Quét nhanh."
-      }, { status: 400 });
+        success: true,
+        scannedFilesCount: 0,
+        matchedCount: 0,
+        message: driveApiScanned 
+          ? `Thư mục Drive hiện đang trống (0 file video). Đã đồng bộ trạng thái: các video hiển thị Chưa có file trên Drive.`
+          : `Không tìm thấy file nào trong danh sách quét.`
+      });
     }
 
-    // Auto-matching
+    // When files exist in the folder: match and reconcile
     const matchedResults: { videoId: string; stt: number; title: string; fileName: string; url?: string }[] = [];
+    const matchedVideoIds = new Set<string>();
 
-    for (const file of filesToMatch) {
-      let bestMatch: { video: any; confidence: number } | null = null;
+    // Step 1: Find best matches for videos
+    for (const video of allVideos) {
+      let bestFile: { name: string; id?: string; url?: string; confidence: number } | null = null;
 
-      for (const video of allVideos) {
+      for (const file of filesToMatch) {
         const matchResult = matchFileWithVideo(file.name, video.stt, video.title);
         if (matchResult.isMatch) {
-          if (!bestMatch || matchResult.confidence > bestMatch.confidence) {
-            bestMatch = { video, confidence: matchResult.confidence };
+          if (!bestFile || matchResult.confidence > bestFile.confidence) {
+            bestFile = { ...file, confidence: matchResult.confidence };
           }
         }
       }
 
-      if (bestMatch) {
-        const current = bestMatch.video;
-        const updatedStatus = current.status === 'not_started' ? 'uploaded_drive' : current.status;
-        const videoUrl = file.url || current.driveVideoUrl || (file.id ? `https://drive.google.com/file/d/${file.id}/view` : '');
+      if (bestFile) {
+        matchedVideoIds.add(video.id);
+        const updatedStatus = video.status === 'not_started' ? 'uploaded_drive' : video.status;
+        const videoUrl = bestFile.url || (bestFile.id ? `https://drive.google.com/file/d/${bestFile.id}/view` : '');
 
         const updated = {
-          ...current,
+          ...video,
           status: updatedStatus,
-          driveFileName: file.name,
-          driveFileId: file.id || current.driveFileId,
+          driveFileName: bestFile.name,
+          driveFileId: bestFile.id || video.driveFileId,
           driveVideoUrl: videoUrl,
-          driveUploadedAt: current.driveUploadedAt || new Date().toISOString(),
+          driveUploadedAt: video.driveUploadedAt || new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
 
         await dbSaveVideo(updated);
 
         matchedResults.push({
-          videoId: current.id,
-          stt: current.stt,
-          title: current.title,
-          fileName: file.name,
+          videoId: video.id,
+          stt: video.stt,
+          title: video.title,
+          fileName: bestFile.name,
           url: videoUrl
         });
+      } else {
+        // Not matched in current folder: if it previously had a drive file, clear it!
+        if (video.driveFileName || video.driveFileId || video.driveVideoUrl) {
+          const resetStatus = video.status === 'uploaded_drive' ? 'not_started' : video.status;
+          await dbSaveVideo({
+            ...video,
+            driveFileName: undefined,
+            driveFileId: undefined,
+            driveVideoUrl: undefined,
+            driveUploadedAt: undefined,
+            status: resetStatus,
+            updatedAt: new Date().toISOString()
+          });
+        }
       }
     }
 
@@ -109,7 +153,7 @@ export async function POST(req: Request) {
       scannedFilesCount: filesToMatch.length,
       matchedCount: matchedResults.length,
       matchedResults,
-      message: `Đã quét ${filesToMatch.length} file, tự động nhận diện & cập nhật thành công ${matchedResults.length} video!`
+      message: `Đã quét ${filesToMatch.length} file, tự động nhận diện & cập nhật thành công ${matchedResults.length} video real-time!`
     });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
